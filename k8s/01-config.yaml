@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: throttle-config
+  namespace: throttle
+data:
+  PORT: "4000"
+  NODE_ENV: "production"
+  MONGO_URI: "mongodb://mongo:27017/rate_limiter"
+  REDIS_URL: "redis://redis:6379"
+  CORS_ORIGIN: "https://your-frontend-domain.example.com"
+---
+# Fill in real values and apply with:
+#   kubectl create secret generic throttle-secrets \
+#     --namespace throttle \
+#     --from-literal=CLERK_SECRET_KEY=sk_live_xxx \
+#     --from-literal=VITE_CLERK_PUBLISHABLE_KEY=pk_live_xxx
+#
+# Do NOT commit real secret values into this file or version control.
+apiVersion: v1
+kind: Secret
+metadata:
+  name: throttle-secrets
+  namespace: throttle
+type: Opaque
+stringData:
+  CLERK_SECRET_KEY: "sk_live_replace_me"

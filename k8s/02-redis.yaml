@@ -1,0 +1,53 @@
+# Starter manifest - fine for demos/staging. For production, prefer a
+# managed Redis (ElastiCache, Upstash, Memorystore) or the Bitnami/Redis
+# Operator Helm chart instead of this bare Deployment, since a single pod
+# with no replication means any node eviction drops all rate-limit state.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: throttle
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: redis }
+  template:
+    metadata:
+      labels: { app: redis }
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests: { cpu: "100m", memory: "128Mi" }
+            limits: { cpu: "500m", memory: "512Mi" }
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: throttle
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests: { storage: 2Gi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: throttle
+spec:
+  selector: { app: redis }
+  ports:
+    - port: 6379
+      targetPort: 6379
